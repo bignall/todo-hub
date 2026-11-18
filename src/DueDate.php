@@ -37,9 +37,15 @@ final class DueDate {
 		if ( preg_match( '/^(\d{4})-(\d{2})-(\d{2})$/', $value, $m ) ) {
 			return checkdate( (int) $m[2], (int) $m[3], (int) $m[1] ) ? $value : '';
 		}
+		// Check first: on PHP 8.1 and 8.2, modify() warns on text it can't read instead of throwing.
+		$parsed = date_parse( $value );
+		if ( ! is_array( $parsed ) || $parsed['error_count'] > 0 ) {
+			return '';
+		}
 		try {
 			$base = $today ?? new \DateTimeImmutable( 'today', $tz );
-			return $base->setTimezone( $tz )->modify( $value )->format( 'Y-m-d' );
+			$date = $base->setTimezone( $tz )->modify( $value );
+			return $date instanceof \DateTimeImmutable ? $date->format( 'Y-m-d' ) : '';
 		} catch ( \Throwable ) {
 			return '';
 		}
