@@ -209,7 +209,7 @@ final class Calendar {
 	}
 
 	/** Create the plugin's own calendar, in the site's timezone. */
-	public static function createCalendar(): true|\WP_Error {
+	public static function createCalendar(): bool|\WP_Error {
 		$name = __( 'To-do', 'todo-hub' );
 		$body = array( 'summary' => $name );
 		if ( EventMapper::isNamed( wp_timezone_string() ) ) {

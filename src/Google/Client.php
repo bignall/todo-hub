@@ -113,7 +113,7 @@ final class Client {
 	}
 
 	/** Swap the code Google sent back for tokens. */
-	public static function exchangeCode( string $code ): true|\WP_Error {
+	public static function exchangeCode( string $code ): bool|\WP_Error {
 		$tokens = self::tokenRequest(
 			array(
 				'code'         => $code,
