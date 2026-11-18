@@ -8,6 +8,10 @@
  *         todo_hub_add( [ 'title' => 'Approve 5 new items', 'source' => 'where-to-buy', 'key' => 'where-to-buy:approve' ] );
  *     }
  *
+ * On a site set to Connector mode, the same calls go to the hub on another site, and the
+ * todo_hub_task_completed hooks fire here when the hub reports a task done (for tasks added
+ * with 'notify' => true). Changes made while the hub can't be reached are sent later.
+ *
  * Or fire the actions, which do nothing when To-do Hub isn't active:
  *
  *     do_action( 'todo_hub_add_task', [ 'title' => '...' ] );
@@ -18,7 +22,7 @@
 
 declare(strict_types=1);
 
-use TodoHub\Tasks;
+use TodoHub\Api;
 
 if ( ! function_exists( 'todo_hub_add' ) ) {
 
@@ -39,15 +43,17 @@ if ( ! function_exists( 'todo_hub_add' ) ) {
 	 *     @type string            $source   Your plugin's slug, e.g. 'where-to-buy'.
 	 *     @type string            $key      Your own id for this task, e.g. 'where-to-buy:approve-queue'.
 	 *     @type string            $link     Where to go to do the task, e.g. an admin screen.
-	 *     @type bool              $notify   Tell the source when it's done (used by connected sites).
+	 *     @type bool              $notify   On a connected site: have the hub report back when it's done,
+	 *                                       so todo_hub_task_completed fires on this site.
 	 *     @type string|array      $repeat   'daily', 'weekly', 'monthly', 'yearly', or
 	 *                                       [ 'every' => 2, 'unit' => 'week' ].
 	 *     @type array             $data     Anything you want back when the task is completed.
 	 * }
-	 * @return int|WP_Error The task id.
+	 * @return int|WP_Error The task id. On a connected site: the hub's task id, or 0 when the hub
+	 *                      can't be reached right now and the task will be sent later.
 	 */
 	function todo_hub_add( array $args ): int|WP_Error {
-		return Tasks::add( $args );
+		return Api::add( $args );
 	}
 
 	/**
@@ -57,11 +63,7 @@ if ( ! function_exists( 'todo_hub_add' ) ) {
 	 * @param array<string, mixed> $args      Fields, as for todo_hub_add().
 	 */
 	function todo_hub_update( int|string $id_or_key, array $args ): bool|WP_Error {
-		$id = Tasks::resolve( $id_or_key );
-		if ( ! $id ) {
-			return new WP_Error( 'todo_hub_not_found', __( 'That task does not exist.', 'todo-hub' ) );
-		}
-		return Tasks::update( $id, $args );
+		return Api::update( $id_or_key, $args );
 	}
 
 	/**
@@ -71,8 +73,7 @@ if ( ! function_exists( 'todo_hub_add' ) ) {
 	 * @return bool False when there is no such open task.
 	 */
 	function todo_hub_complete( int|string $id_or_key ): bool {
-		$id = Tasks::resolve( $id_or_key );
-		return $id ? Tasks::complete( $id ) : false;
+		return Api::complete( $id_or_key );
 	}
 
 	/**
@@ -81,7 +82,7 @@ if ( ! function_exists( 'todo_hub_add' ) ) {
 	 * @param int $id Task id.
 	 */
 	function todo_hub_reopen( int $id ): bool {
-		return Tasks::reopen( $id );
+		return Api::reopen( $id );
 	}
 
 	/**
@@ -91,8 +92,7 @@ if ( ! function_exists( 'todo_hub_add' ) ) {
 	 * @param int|string $id_or_key Task id, or the key of an open task.
 	 */
 	function todo_hub_remove( int|string $id_or_key ): bool {
-		$id = Tasks::resolve( $id_or_key );
-		return $id ? Tasks::remove( $id ) : false;
+		return Api::remove( $id_or_key );
 	}
 
 	/**
@@ -104,8 +104,7 @@ if ( ! function_exists( 'todo_hub_add' ) ) {
 	 * @return array<string, mixed>|null
 	 */
 	function todo_hub_get( int|string $id_or_key ): ?array {
-		$id = Tasks::resolve( $id_or_key );
-		return $id ? Tasks::get( $id ) : null;
+		return Api::get( $id_or_key );
 	}
 
 	/**
@@ -115,6 +114,6 @@ if ( ! function_exists( 'todo_hub_add' ) ) {
 	 * @return list<array<string, mixed>>
 	 */
 	function todo_hub_open_tasks( array $filters = array() ): array {
-		return Tasks::open( $filters );
+		return Api::open( $filters );
 	}
 }

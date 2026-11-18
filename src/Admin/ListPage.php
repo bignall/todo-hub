@@ -304,11 +304,24 @@ final class ListPage {
 					<?php if ( $task['repeat'] ) : ?>
 						<span class="tdh-repeat"><?php echo esc_html( Format::repeat( $task['repeat'] ) ); ?></span>
 					<?php endif; ?>
+					<?php if ( '' === $task['source'] && '' !== $task['site'] ) : ?>
+						<span class="tdh-source">
+							<?php
+							/* translators: %s: the site that added the task. */
+							echo esc_html( sprintf( __( 'from %s', 'todo-hub' ), $task['site'] ) );
+							?>
+						</span>
+					<?php endif; ?>
 					<?php if ( '' !== $task['source'] ) : ?>
 						<span class="tdh-source">
 							<?php
-							/* translators: %s: plugin or site that added the task. */
-							echo esc_html( sprintf( __( 'from %s', 'todo-hub' ), $task['source'] ) );
+							if ( '' !== $task['site'] ) {
+								/* translators: 1: plugin that added the task, 2: the site it's on. */
+								echo esc_html( sprintf( __( 'from %1$s on %2$s', 'todo-hub' ), $task['source'], $task['site'] ) );
+							} else {
+								/* translators: %s: plugin that added the task. */
+								echo esc_html( sprintf( __( 'from %s', 'todo-hub' ), $task['source'] ) );
+							}
 							?>
 						</span>
 					<?php endif; ?>

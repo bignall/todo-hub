@@ -42,7 +42,32 @@ Functions: `todo_hub_add()`, `todo_hub_update()`, `todo_hub_complete()`, `todo_h
 Hooks: `todo_hub_task_added`, `todo_hub_task_completed`, `todo_hub_task_completed_{source}`, `todo_hub_task_reopened`.
 See [src/functions.php](src/functions.php) for every argument.
 
-Coming next: a REST API and a connector so plugins on other sites can add tasks to the hub and get a callback when they're done, then Google Calendar sync.
+## One list for all your sites
+
+Install To-do Hub on every site. One site is the **hub** and keeps the list; the others are **connectors** (To-do → Settings → Role) that send their tasks to it.
+
+1. On the hub, add a user with the **To-do Connector** role. In that user's profile, create an application password named after the other site.
+2. On the other site, choose **Connector** and enter the hub's address, that user name and the application password. The settings page says whether the connection works.
+
+Plugins on a connected site use the same `todo_hub_*()` calls as above; the tasks show up on the hub as "from where-to-buy on example.com". Add `'notify' => true` to a task and the hub tells the site when it's done, so `todo_hub_task_completed` fires there too. If the hub can't be reached, changes wait and are sent in order every five minutes.
+
+The hub needs https (application passwords require it), and WP-Cron should run regularly on both sites. On SiteGround, add a cron job that loads `wp-cron.php` every five minutes.
+
+### REST API
+
+The hub's API lives at `/wp-json/todo-hub/v1` (or `/?rest_route=/todo-hub/v1` without pretty permalinks). Log in with an application password.
+
+| Method and path | What it does |
+| --- | --- |
+| `GET /ping` | Check the connection. |
+| `GET /tasks` | Open tasks, first to do first. `?status=done`, `site`, `key`, `source`, `category`, `per_page`. |
+| `POST /tasks` | Add a task (fields as for `todo_hub_add()`, plus `site` and `callback`). An open task with the same `site` and `key` is updated instead. |
+| `GET`, `PATCH`, `DELETE /tasks/{id}` | Read, change, or move to the trash. |
+| `POST /tasks/{id}/complete`, `/reopen` | Mark done, or open again. |
+
+When a task with `notify` set and a `callback` URL is completed or reopened, the hub POSTs `{"event": "completed", "task_id": 12, "site": "...", "key": "..."}` to the callback, retrying for about 14 hours if that fails. The message carries no secret: the connected site fetches the task back from the hub to see what really happened before it acts.
+
+Coming next: Google Calendar sync.
 
 ## Install
 

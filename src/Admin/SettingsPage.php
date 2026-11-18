@@ -29,6 +29,57 @@ final class SettingsPage {
 			<h1><?php esc_html_e( 'To-do Settings', 'todo-hub' ); ?></h1>
 			<form method="post" action="options.php">
 				<?php settings_fields( 'tdh_settings' ); ?>
+				<h2><?php esc_html_e( 'This site', 'todo-hub' ); ?></h2>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Role', 'todo-hub' ); ?></th>
+						<td>
+							<fieldset>
+								<label>
+									<input type="radio" name="<?php echo esc_attr( $name ); ?>[mode]" value="hub" <?php checked( ! Settings::isConnector() ); ?> />
+									<strong><?php esc_html_e( 'Hub', 'todo-hub' ); ?></strong> &mdash; <?php esc_html_e( 'keep the to-do list on this site.', 'todo-hub' ); ?>
+								</label><br />
+								<label>
+									<input type="radio" name="<?php echo esc_attr( $name ); ?>[mode]" value="connector" <?php checked( Settings::isConnector() ); ?> />
+									<strong><?php esc_html_e( 'Connector', 'todo-hub' ); ?></strong> &mdash; <?php esc_html_e( 'send this site\'s tasks to a hub on another site.', 'todo-hub' ); ?>
+								</label>
+							</fieldset>
+						</td>
+					</tr>
+				</table>
+
+				<?php if ( Settings::isConnector() ) : ?>
+					<h2><?php esc_html_e( 'Hub connection', 'todo-hub' ); ?></h2>
+					<?php ConnectorPage::status( true ); ?>
+					<p class="description">
+						<?php esc_html_e( 'On the hub site: add a user with the "To-do Connector" role, then in that user\'s profile create an application password named after this site. Enter them here. The hub must use https.', 'todo-hub' ); ?>
+					</p>
+					<table class="form-table" role="presentation">
+						<tr>
+							<th scope="row"><label for="tdh-hub-url"><?php esc_html_e( 'Hub address', 'todo-hub' ); ?></label></th>
+							<td><input id="tdh-hub-url" type="url" class="regular-text" placeholder="https://todo.example.com" name="<?php echo esc_attr( $name ); ?>[hub_url]" value="<?php echo esc_attr( (string) Settings::get( 'hub_url' ) ); ?>" /></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="tdh-hub-user"><?php esc_html_e( 'User name on the hub', 'todo-hub' ); ?></label></th>
+							<td><input id="tdh-hub-user" type="text" class="regular-text" autocomplete="off" name="<?php echo esc_attr( $name ); ?>[hub_user]" value="<?php echo esc_attr( (string) Settings::get( 'hub_user' ) ); ?>" /></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="tdh-hub-password"><?php esc_html_e( 'Application password', 'todo-hub' ); ?></label></th>
+							<td>
+								<input id="tdh-hub-password" type="password" class="regular-text" autocomplete="new-password" name="<?php echo esc_attr( $name ); ?>[hub_password]" value="" placeholder="<?php echo esc_attr( '' !== (string) Settings::get( 'hub_password' ) ? __( 'Saved. Leave blank to keep it.', 'todo-hub' ) : 'xxxx xxxx xxxx xxxx xxxx xxxx' ); ?>" />
+							</td>
+						</tr>
+					</table>
+				<?php else : ?>
+					<p class="description">
+						<?php
+						/* translators: %s: REST API address. */
+						echo esc_html( sprintf( __( 'Other sites connect to this hub at %s.', 'todo-hub' ), home_url() ) );
+						?>
+					</p>
+				<?php endif; ?>
+
+				<h2><?php esc_html_e( 'Task list', 'todo-hub' ); ?></h2>
 				<table class="form-table" role="presentation">
 					<tr>
 						<th scope="row"><?php esc_html_e( 'Moving up the list', 'todo-hub' ); ?></th>

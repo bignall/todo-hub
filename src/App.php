@@ -25,9 +25,18 @@ final class App {
 		Hooks::init();
 		PrivateSite::init();
 
+		if ( Settings::isConnector() ) {
+			Connector\Notify::init();
+			Connector\Outbox::init();
+		} else {
+			Hub\RestApi::init();
+			Hub\Webhooks::init();
+		}
+
 		if ( is_admin() ) {
 			Admin\Menu::init( $plugin );
 			Admin\ListPage::init();
+			Admin\ConnectorPage::init();
 			Admin\TaskEditor::init();
 			Admin\SettingsPage::init();
 			Admin\DashboardWidget::init();

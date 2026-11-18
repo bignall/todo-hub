@@ -20,6 +20,17 @@ final class Bootstrap {
 			->requires( php: '8.1', wp: '6.4' )
 			->options( array( Settings::OPTION => Settings::defaults() ), merge: true )
 			->capabilities( array( 'administrator' => array( Tasks::CAPABILITY ) ) )
+			// A user for connected sites to log in as (with an application password).
+			->role(
+				'tdh_connector',
+				'To-do Connector',
+				array(
+					'read'            => true,
+					Tasks::CAPABILITY => true,
+				)
+			)
+			->cronSchedule( 'tdh_five_minutes', 5 * MINUTE_IN_SECONDS, 'Every five minutes' )
+			->cron( Connector\Outbox::CRON_HOOK, 'tdh_five_minutes' )
 			->postTypes( Tasks::POST_TYPE )
 			->taxonomies( Tasks::TAXONOMY )
 			->deactivationSurvey()

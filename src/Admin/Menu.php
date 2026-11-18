@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace TodoHub\Admin;
 
 use TodoHub\App;
+use TodoHub\Settings;
 use TodoHub\Tasks;
 use TodoHub\Vendor\Bignall\WPFoundation\Plugin;
 
@@ -31,14 +32,19 @@ final class Menu {
 	}
 
 	public static function menu(): void {
-		$count  = current_user_can( Tasks::CAPABILITY ) ? Tasks::dueNowCount() : 0;
+		$count  = current_user_can( Tasks::CAPABILITY ) && ! Settings::isConnector() ? Tasks::dueNowCount() : 0;
 		$bubble = $count ? ' <span class="awaiting-mod count-' . $count . '"><span class="pending-count">' . number_format_i18n( $count ) . '</span></span>' : '';
 
-		add_menu_page( __( 'To-do', 'todo-hub' ), __( 'To-do', 'todo-hub' ) . $bubble, Tasks::CAPABILITY, self::SLUG, array( ListPage::class, 'render' ), 'dashicons-yes-alt', 26 );
-		add_submenu_page( self::SLUG, __( 'Task List', 'todo-hub' ), __( 'Task List', 'todo-hub' ), Tasks::CAPABILITY, self::SLUG, array( ListPage::class, 'render' ) );
+		$render = Settings::isConnector() ? array( ConnectorPage::class, 'render' ) : array( ListPage::class, 'render' );
+		add_menu_page( __( 'To-do', 'todo-hub' ), __( 'To-do', 'todo-hub' ) . $bubble, Tasks::CAPABILITY, self::SLUG, $render, 'dashicons-yes-alt', 26 );
+		add_submenu_page( self::SLUG, __( 'Task List', 'todo-hub' ), __( 'Task List', 'todo-hub' ), Tasks::CAPABILITY, self::SLUG, $render );
 	}
 
 	public static function more(): void {
+		if ( Settings::isConnector() ) {
+			add_submenu_page( self::SLUG, __( 'To-do Settings', 'todo-hub' ), __( 'Settings', 'todo-hub' ), 'manage_options', SettingsPage::SLUG, array( SettingsPage::class, 'render' ) );
+			return;
+		}
 		add_submenu_page( self::SLUG, __( 'Add Task', 'todo-hub' ), __( 'Add Task', 'todo-hub' ), Tasks::CAPABILITY, 'post-new.php?post_type=' . Tasks::POST_TYPE );
 		add_submenu_page( self::SLUG, __( 'Categories', 'todo-hub' ), __( 'Categories', 'todo-hub' ), Tasks::CAPABILITY, 'edit-tags.php?taxonomy=' . Tasks::TAXONOMY . '&post_type=' . Tasks::POST_TYPE );
 		add_submenu_page( self::SLUG, __( 'To-do Settings', 'todo-hub' ), __( 'Settings', 'todo-hub' ), 'manage_options', SettingsPage::SLUG, array( SettingsPage::class, 'render' ) );

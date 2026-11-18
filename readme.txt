@@ -4,7 +4,7 @@ Tags: to-do, tasks, task list, reminders, productivity
 Requires at least: 6.4
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.1.0
+Stable tag: 0.2.0
 License: GPLv2 or later
 
 One central to-do list, sorted by what needs doing first. Other plugins can add tasks and hear when they're done.
@@ -19,6 +19,8 @@ One central to-do list, sorted by what needs doing first. Other plugins can add 
 * Each task can have notes, a link to where the work is done, and categories. Edit everything on the task's own screen.
 * The To-do menu shows how many tasks are overdue or due today, and a dashboard widget lists what's next.
 * Private site option: send visitors who aren't logged in to the login page, for a site that holds only your list.
+* One list for all your sites: set the other sites to Connector mode and their tasks go to the hub, where each shows which site and plugin it came from. The hub tells a site when its tasks are done, and changes made while the hub is unreachable are sent later.
+* REST API on the hub at /wp-json/todo-hub/v1, authenticated with application passwords.
 * Built on WP Foundation (activation, upgrades, uninstall, multisite, deactivation survey).
 
 == For plugin developers ==
@@ -32,7 +34,21 @@ Or, without checking whether To-do Hub is active: do_action( 'todo_hub_add_task'
 
 A task added again with the same key updates the open task instead of adding a duplicate.
 
+== Connecting sites ==
+
+1. On the hub: add a user with the To-do Connector role and create an application password for it (Users → Profile → Application Passwords).
+2. On the other site: To-do → Settings → Role: Connector, then enter the hub's address, the user name and the application password.
+
+The hub must use https. Run WP-Cron on a real schedule (a server cron job every five minutes) so waiting changes and retries go out on time.
+
 == Changelog ==
+
+= 0.2.0 =
+* Connector mode: send this site's tasks to a hub on another site. The PHP API works the same in both modes.
+* REST API on the hub, and a To-do Connector role for connected sites to log in as.
+* The hub reports completed and reopened tasks back to the site that added them (for tasks with notify set), retrying if the site can't be reached.
+* Changes made while the hub can't be reached are kept and sent in order.
+* Tasks from connected sites show which site they came from.
 
 = 0.1.0 =
 * First release: task list with quick add, priority sorting, due dates with optional times, categories, repeating tasks, views, dashboard widget, private site option and the PHP API.

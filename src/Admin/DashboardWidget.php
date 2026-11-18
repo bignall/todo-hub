@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace TodoHub\Admin;
 
+use TodoHub\Api;
 use TodoHub\Tasks;
 
 final class DashboardWidget {
@@ -26,7 +27,7 @@ final class DashboardWidget {
 	}
 
 	public static function render(): void {
-		$all   = Tasks::open();
+		$all   = Api::open();
 		$tasks = array_slice( $all, 0, self::COUNT );
 		if ( ! $tasks ) {
 			echo '<p>' . esc_html__( 'Nothing to do. Nice.', 'todo-hub' ) . '</p>';
@@ -34,7 +35,7 @@ final class DashboardWidget {
 			echo '<ul class="tdh-mini">';
 			foreach ( $tasks as $task ) {
 				$state = Format::dueState( $task['due'], $task['due_time'] );
-				echo '<li><a href="' . esc_url( $task['edit_url'] ) . '">' . esc_html( $task['title'] ) . '</a>';
+				echo '<li><a href="' . esc_url( (string) $task['edit_url'] ) . '">' . esc_html( (string) $task['title'] ) . '</a>';
 				if ( '' !== $task['due'] ) {
 					echo ' <span class="tdh-due tdh-due--' . esc_attr( $state ) . '">' . esc_html( Format::due( $task['due'], $task['due_time'] ) ) . '</span>';
 				}

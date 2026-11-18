@@ -27,6 +27,8 @@ final class Tasks {
 	public const META_SOURCE   = '_tdh_source';
 	public const META_KEY      = '_tdh_key';
 	public const META_LINK     = '_tdh_link';
+	public const META_SITE     = '_tdh_site';
+	public const META_CALLBACK = '_tdh_callback';
 	public const META_NOTIFY   = '_tdh_notify';
 	public const META_REPEAT   = '_tdh_repeat';
 	public const META_DATA     = '_tdh_data';
@@ -66,7 +68,8 @@ final class Tasks {
 					'menu_name'          => __( 'To-do', 'todo-hub' ),
 				),
 				'public'          => false,
-				'show_ui'         => true,
+				// On a connected site tasks live on the hub, so there's nothing to edit here.
+				'show_ui'         => ! Settings::isConnector(),
 				'show_in_menu'    => Admin\Menu::SLUG,
 				'show_in_rest'    => false,
 				'supports'        => array( 'title', 'editor' ),
@@ -233,9 +236,10 @@ final class Tasks {
 	 * @param array<string, mixed> $args See todo_hub_add().
 	 */
 	public static function add( array $args ): int|\WP_Error {
-		$key = isset( $args['key'] ) ? self::cleanKey( $args['key'] ) : '';
+		$key  = isset( $args['key'] ) ? self::cleanKey( $args['key'] ) : '';
+		$site = isset( $args['site'] ) ? self::cleanSite( $args['site'] ) : '';
 		if ( '' !== $key ) {
-			$existing = self::findOpenByKey( $key );
+			$existing = self::findOpenByKey( $key, $site );
 			if ( $existing ) {
 				$updated = self::update( $existing, $args );
 				return true === $updated ? $existing : $updated;
@@ -268,12 +272,14 @@ final class Tasks {
 			'due'      => '',
 			'source'   => '',
 			'key'      => $key,
+			'site'     => $site,
+			'callback' => '',
 			'link'     => '',
 			'notify'   => false,
 			'repeat'   => null,
 			'data'     => array(),
 		);
-		self::saveFields( $id, array_merge( $defaults, $args, array( 'key' => $key ) ) );
+		self::saveFields( $id, array_merge( $defaults, $args, array( 'key' => $key, 'site' => $site ) ) );
 
 		/**
 		 * Fires when a task is added.
@@ -346,6 +352,13 @@ final class Tasks {
 		}
 		if ( array_key_exists( 'link', $args ) ) {
 			update_post_meta( $id, self::META_LINK, esc_url_raw( (string) $args['link'] ) );
+		}
+		if ( array_key_exists( 'site', $args ) ) {
+			update_post_meta( $id, self::META_SITE, self::cleanSite( $args['site'] ) );
+		}
+		if ( array_key_exists( 'callback', $args ) ) {
+			$url = esc_url_raw( (string) $args['callback'], array( 'https', 'http' ) );
+			update_post_meta( $id, self::META_CALLBACK, $url );
 		}
 		if ( array_key_exists( 'notify', $args ) ) {
 			update_post_meta( $id, self::META_NOTIFY, $args['notify'] ? 1 : 0 );
@@ -461,6 +474,8 @@ final class Tasks {
 				'due_time' => $task['due_time'],
 				'source'   => $task['source'],
 				'link'     => $task['link'],
+				'site'     => $task['site'],
+				'callback' => (string) get_post_meta( $id, self::META_CALLBACK, true ),
 				'notify'   => $task['notify'],
 				'repeat'   => $rule,
 				'data'     => $task['data'],
@@ -480,26 +495,52 @@ final class Tasks {
 		return $id > 0 && get_post_type( $id ) === self::POST_TYPE && get_post_status( $id ) !== 'trash';
 	}
 
-	/** An id, or a key (string) for the open task with that key. */
-	public static function resolve( int|string $id_or_key ): int {
+	/**
+	 * An id, or a key (string) for the open task with that key. Keys are per site: tasks
+	 * added on the hub itself have site '', tasks from a connected site carry its address.
+	 */
+	public static function resolve( int|string $id_or_key, string $site = '' ): int {
 		if ( is_int( $id_or_key ) || ctype_digit( $id_or_key ) ) {
 			$id = (int) $id_or_key;
 			return self::exists( $id ) ? $id : 0;
 		}
-		return self::findOpenByKey( self::cleanKey( $id_or_key ) );
+		return self::findOpenByKey( self::cleanKey( $id_or_key ), self::cleanSite( $site ) );
 	}
 
-	/** Id of the open task with this key, or 0. */
-	public static function findOpenByKey( string $key ): int {
+	/** Id of the open task with this key (from this site), or 0. */
+	public static function findOpenByKey( string $key, string $site = '' ): int {
 		if ( '' === $key ) {
 			return 0;
+		}
+		$meta = array(
+			array(
+				'key'   => self::META_KEY,
+				'value' => $key,
+			),
+		);
+		if ( '' === $site ) {
+			$meta[] = array(
+				'relation' => 'OR',
+				array(
+					'key'     => self::META_SITE,
+					'compare' => 'NOT EXISTS',
+				),
+				array(
+					'key'   => self::META_SITE,
+					'value' => '',
+				),
+			);
+		} else {
+			$meta[] = array(
+				'key'   => self::META_SITE,
+				'value' => $site,
+			);
 		}
 		$ids = get_posts(
 			array(
 				'post_type'        => self::POST_TYPE,
 				'post_status'      => self::STATUS_OPEN,
-				'meta_key'         => self::META_KEY, // phpcs:ignore WordPress.DB.SlowDBQuery
-				'meta_value'       => $key, // phpcs:ignore WordPress.DB.SlowDBQuery
+				'meta_query'       => $meta, // phpcs:ignore WordPress.DB.SlowDBQuery
 				'fields'           => 'ids',
 				'posts_per_page'   => 1,
 				'orderby'          => 'ID',
@@ -511,6 +552,13 @@ final class Tasks {
 		return $ids ? (int) $ids[0] : 0;
 	}
 
+	/** A connected site's address without the scheme, e.g. "rosinabignall.com" or "example.com/blog". */
+	public static function cleanSite( mixed $site ): string {
+		$site = is_scalar( $site ) ? strtolower( trim( (string) $site ) ) : '';
+		$site = (string) preg_replace( '#^[a-z]+://#', '', $site );
+		return substr( rtrim( (string) preg_replace( '#[^a-z0-9.\-:/_~]#', '', $site ), '/' ), 0, 191 );
+	}
+
 	/** Keys are free text from other plugins, e.g. "where-to-buy:approve-queue". */
 	public static function cleanKey( mixed $key ): string {
 		$key = is_scalar( $key ) ? (string) $key : '';
@@ -520,7 +568,7 @@ final class Tasks {
 	/**
 	 * A task as an array.
 	 *
-	 * @return array{id: int, title: string, notes: string, status: string, priority: int, priority_name: string, due: string, due_time: string, categories: list<array{id: int, name: string, slug: string}>, source: string, key: string, link: string, notify: bool, repeat: array{every: int, unit: string}|null, data: array<mixed>, created: string, completed: string, edit_url: string}|null
+	 * @return array{id: int, title: string, notes: string, status: string, priority: int, priority_name: string, due: string, due_time: string, categories: list<array{id: int, name: string, slug: string}>, source: string, key: string, link: string, site: string, notify: bool, repeat: array{every: int, unit: string}|null, data: array<mixed>, created: string, completed: string, edit_url: string}|null
 	 */
 	public static function get( int $id ): ?array {
 		$post = get_post( $id );
@@ -551,6 +599,7 @@ final class Tasks {
 			'source'        => (string) get_post_meta( $id, self::META_SOURCE, true ),
 			'key'           => (string) get_post_meta( $id, self::META_KEY, true ),
 			'link'          => (string) get_post_meta( $id, self::META_LINK, true ),
+			'site'          => (string) get_post_meta( $id, self::META_SITE, true ),
 			'notify'        => (bool) get_post_meta( $id, self::META_NOTIFY, true ),
 			'repeat'        => Recurrence::parse( get_post_meta( $id, self::META_REPEAT, true ) ),
 			'data'          => is_array( $data ) ? $data : array(),
@@ -563,7 +612,7 @@ final class Tasks {
 	/**
 	 * Open tasks, first to do first.
 	 *
-	 * @param array{category?: int, source?: string} $filters Optional filters.
+	 * @param array{category?: int, source?: string, site?: string, key?: string} $filters Optional filters.
 	 * @return list<array<string, mixed>>
 	 */
 	public static function open( array $filters = array() ): array {
@@ -583,9 +632,9 @@ final class Tasks {
 				),
 			);
 		}
-		if ( ! empty( $filters['source'] ) ) {
-			$query['meta_key']   = self::META_SOURCE; // phpcs:ignore WordPress.DB.SlowDBQuery
-			$query['meta_value'] = $filters['source']; // phpcs:ignore WordPress.DB.SlowDBQuery
+		$meta = self::metaFilters( $filters );
+		if ( $meta ) {
+			$query['meta_query'] = $meta; // phpcs:ignore WordPress.DB.SlowDBQuery
 		}
 		$ids = get_posts( $query );
 		update_meta_cache( 'post', $ids );
@@ -595,17 +644,53 @@ final class Tasks {
 	}
 
 	/**
+	 * Meta query clauses for the source, site and key filters.
+	 *
+	 * @param array<string, mixed> $filters Filters.
+	 * @return list<array<string, string>>
+	 */
+	private static function metaFilters( array $filters ): array {
+		$meta = array();
+		if ( ! empty( $filters['source'] ) ) {
+			$meta[] = array(
+				'key'   => self::META_SOURCE,
+				'value' => sanitize_key( (string) $filters['source'] ),
+			);
+		}
+		if ( ! empty( $filters['site'] ) ) {
+			$meta[] = array(
+				'key'   => self::META_SITE,
+				'value' => self::cleanSite( $filters['site'] ),
+			);
+		}
+		if ( ! empty( $filters['key'] ) ) {
+			$meta[] = array(
+				'key'   => self::META_KEY,
+				'value' => self::cleanKey( $filters['key'] ),
+			);
+		}
+		return $meta;
+	}
+
+	/**
 	 * Recently completed tasks, newest first.
 	 *
+	 * @param array{source?: string, site?: string, key?: string} $filters Optional filters.
 	 * @return list<array<string, mixed>>
 	 */
-	public static function done( int $limit = 50 ): array {
-		$ids = get_posts(
+	public static function done( int $limit = 50, array $filters = array() ): array {
+		$meta   = self::metaFilters( $filters );
+		$meta[] = array(
+			'key'     => self::META_DONE_AT,
+			'compare' => 'EXISTS',
+		);
+		$ids    = get_posts(
 			array(
 				'post_type'        => self::POST_TYPE,
 				'post_status'      => self::STATUS_DONE,
 				'posts_per_page'   => $limit,
 				'fields'           => 'ids',
+				'meta_query'       => $meta, // phpcs:ignore WordPress.DB.SlowDBQuery
 				'meta_key'         => self::META_DONE_AT, // phpcs:ignore WordPress.DB.SlowDBQuery
 				'orderby'          => 'meta_value',
 				'order'            => 'DESC',

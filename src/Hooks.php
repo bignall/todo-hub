@@ -24,25 +24,19 @@ final class Hooks {
 
 	public static function add( mixed $args ): void {
 		if ( is_array( $args ) ) {
-			Tasks::add( $args );
+			Api::add( $args );
 		}
 	}
 
 	public static function complete( mixed $id_or_key ): void {
 		if ( is_int( $id_or_key ) || is_string( $id_or_key ) ) {
-			$id = Tasks::resolve( $id_or_key );
-			if ( $id ) {
-				Tasks::complete( $id );
-			}
+			Api::complete( $id_or_key );
 		}
 	}
 
 	public static function remove( mixed $id_or_key ): void {
 		if ( is_int( $id_or_key ) || is_string( $id_or_key ) ) {
-			$id = Tasks::resolve( $id_or_key );
-			if ( $id ) {
-				Tasks::remove( $id );
-			}
+			Api::remove( $id_or_key );
 		}
 	}
 }
