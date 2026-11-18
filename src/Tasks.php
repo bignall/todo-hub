@@ -288,7 +288,7 @@ final class Tasks {
 	 *
 	 * @param array<string, mixed> $args See todo_hub_add().
 	 */
-	public static function update( int $id, array $args ): true|\WP_Error {
+	public static function update( int $id, array $args ): bool|\WP_Error {
 		if ( ! self::exists( $id ) ) {
 			return new \WP_Error( 'todo_hub_not_found', __( 'That task does not exist.', 'todo-hub' ) );
 		}

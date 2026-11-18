@@ -53,7 +53,7 @@ if ( ! function_exists( 'todo_hub_add' ) ) {
 	 * @param int|string           $id_or_key Task id, or the key of an open task.
 	 * @param array<string, mixed> $args      Fields, as for todo_hub_add().
 	 */
-	function todo_hub_update( int|string $id_or_key, array $args ): true|WP_Error {
+	function todo_hub_update( int|string $id_or_key, array $args ): bool|WP_Error {
 		$id = Tasks::resolve( $id_or_key );
 		if ( ! $id ) {
 			return new WP_Error( 'todo_hub_not_found', __( 'That task does not exist.', 'todo-hub' ) );
