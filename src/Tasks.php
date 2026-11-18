@@ -23,6 +23,7 @@ final class Tasks {
 
 	public const META_PRIORITY = '_tdh_priority';
 	public const META_DUE      = '_tdh_due';
+	public const META_DUE_TIME = '_tdh_due_time';
 	public const META_SOURCE   = '_tdh_source';
 	public const META_KEY      = '_tdh_key';
 	public const META_LINK     = '_tdh_link';
@@ -328,7 +329,14 @@ final class Tasks {
 			update_post_meta( $id, self::META_PRIORITY, Priority::parse( $args['priority'] ) );
 		}
 		if ( array_key_exists( 'due', $args ) ) {
-			update_post_meta( $id, self::META_DUE, DueDate::parse( $args['due'], wp_timezone(), Settings::today() ) );
+			// A due value replaces the date and the time; a time inside it ("tomorrow 3pm") is kept.
+			$due = DueDate::parseWithTime( $args['due'], wp_timezone(), Settings::today() );
+			update_post_meta( $id, self::META_DUE, $due['date'] );
+			update_post_meta( $id, self::META_DUE_TIME, '' === $due['date'] ? '' : $due['time'] );
+		}
+		if ( array_key_exists( 'due_time', $args ) ) {
+			$has_date = '' !== (string) get_post_meta( $id, self::META_DUE, true );
+			update_post_meta( $id, self::META_DUE_TIME, $has_date ? DueDate::parseTime( $args['due_time'] ) : '' );
 		}
 		if ( array_key_exists( 'source', $args ) ) {
 			update_post_meta( $id, self::META_SOURCE, sanitize_key( (string) $args['source'] ) );
@@ -450,6 +458,7 @@ final class Tasks {
 				'category' => array_column( $task['categories'], 'id' ),
 				'priority' => $task['priority'],
 				'due'      => Recurrence::next( $task['due'], $rule, Settings::today() ),
+				'due_time' => $task['due_time'],
 				'source'   => $task['source'],
 				'link'     => $task['link'],
 				'notify'   => $task['notify'],
@@ -511,7 +520,7 @@ final class Tasks {
 	/**
 	 * A task as an array.
 	 *
-	 * @return array{id: int, title: string, notes: string, status: string, priority: int, priority_name: string, due: string, categories: list<array{id: int, name: string, slug: string}>, source: string, key: string, link: string, notify: bool, repeat: array{every: int, unit: string}|null, data: array<mixed>, created: string, completed: string, edit_url: string}|null
+	 * @return array{id: int, title: string, notes: string, status: string, priority: int, priority_name: string, due: string, due_time: string, categories: list<array{id: int, name: string, slug: string}>, source: string, key: string, link: string, notify: bool, repeat: array{every: int, unit: string}|null, data: array<mixed>, created: string, completed: string, edit_url: string}|null
 	 */
 	public static function get( int $id ): ?array {
 		$post = get_post( $id );
@@ -537,6 +546,7 @@ final class Tasks {
 			'priority'      => $priority,
 			'priority_name' => Priority::name( $priority ),
 			'due'           => (string) get_post_meta( $id, self::META_DUE, true ),
+			'due_time'      => (string) get_post_meta( $id, self::META_DUE_TIME, true ),
 			'categories'    => $categories,
 			'source'        => (string) get_post_meta( $id, self::META_SOURCE, true ),
 			'key'           => (string) get_post_meta( $id, self::META_KEY, true ),
@@ -581,7 +591,7 @@ final class Tasks {
 		update_meta_cache( 'post', $ids );
 		update_object_term_cache( $ids, self::POST_TYPE );
 		$tasks = array_values( array_filter( array_map( static fn ( $id ) => self::get( (int) $id ), $ids ) ) );
-		return Ranking::sort( $tasks, Settings::today(), Settings::soonDays(), Settings::weekDays() );
+		return Ranking::sort( $tasks, Settings::now(), Settings::soonDays(), Settings::weekDays() );
 	}
 
 	/**

@@ -33,10 +33,10 @@ final class DashboardWidget {
 		} else {
 			echo '<ul class="tdh-mini">';
 			foreach ( $tasks as $task ) {
-				$state = Format::dueState( $task['due'] );
+				$state = Format::dueState( $task['due'], $task['due_time'] );
 				echo '<li><a href="' . esc_url( $task['edit_url'] ) . '">' . esc_html( $task['title'] ) . '</a>';
 				if ( '' !== $task['due'] ) {
-					echo ' <span class="tdh-due tdh-due--' . esc_attr( $state ) . '">' . esc_html( Format::due( $task['due'] ) ) . '</span>';
+					echo ' <span class="tdh-due tdh-due--' . esc_attr( $state ) . '">' . esc_html( Format::due( $task['due'], $task['due_time'] ) ) . '</span>';
 				}
 				echo '</li>';
 			}

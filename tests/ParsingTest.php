@@ -43,6 +43,38 @@ final class ParsingTest extends TestCase {
 		$this->assertSame( '2026-11-18', DueDate::parse( 1795057200, $tz, $today ) );
 	}
 
+	public function testDueDatesWithTimes(): void {
+		$tz    = new \DateTimeZone( 'America/Denver' );
+		$today = new \DateTimeImmutable( '2026-11-18 16:45', $tz );
+		$both  = static fn ( string $date, string $time ): array => array(
+			'date' => $date,
+			'time' => $time,
+		);
+
+		$this->assertSame( $both( '2026-12-01', '14:30' ), DueDate::parseWithTime( '2026-12-01 14:30', $tz, $today ) );
+		$this->assertSame( $both( '2026-11-19', '15:00' ), DueDate::parseWithTime( 'tomorrow 3pm', $tz, $today ) );
+		$this->assertSame( $both( '2026-11-19', '' ), DueDate::parseWithTime( 'tomorrow', $tz, $today ) );
+		$this->assertSame( $both( '2026-12-01', '' ), DueDate::parseWithTime( '2026-12-01', $tz, $today ) );
+		$this->assertSame( $both( '2026-12-01', '' ), DueDate::parseWithTime( new \DateTimeImmutable( '2026-12-01 00:00' ), $tz, $today ) );
+		$this->assertSame( $both( '2026-12-01', '09:15' ), DueDate::parseWithTime( new \DateTimeImmutable( '2026-12-01 09:15:40' ), $tz, $today ) );
+		$this->assertSame( $both( '', '' ), DueDate::parseWithTime( 'whenever', $tz, $today ) );
+	}
+
+	public function testTimes(): void {
+		$this->assertSame( '14:30', DueDate::parseTime( '14:30' ) );
+		$this->assertSame( '14:30', DueDate::parseTime( '14:30:00' ) );
+		$this->assertSame( '09:05', DueDate::parseTime( '9:05' ) );
+		$this->assertSame( '14:30', DueDate::parseTime( '2:30 PM' ) );
+		$this->assertSame( '09:00', DueDate::parseTime( '9am' ) );
+		$this->assertSame( '00:00', DueDate::parseTime( '12am' ) );
+		$this->assertSame( '12:00', DueDate::parseTime( '12 p.m.' ) );
+		$this->assertSame( '', DueDate::parseTime( '9' ) );
+		$this->assertSame( '', DueDate::parseTime( '25:00' ) );
+		$this->assertSame( '', DueDate::parseTime( '13pm' ) );
+		$this->assertSame( '', DueDate::parseTime( '' ) );
+		$this->assertSame( '', DueDate::parseTime( null ) );
+	}
+
 	public function testDaysUntil(): void {
 		$today = new \DateTimeImmutable( '2026-11-18 22:00', new \DateTimeZone( 'America/Denver' ) );
 		$this->assertSame( 0, DueDate::daysUntil( '2026-11-18', $today ) );

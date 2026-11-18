@@ -61,7 +61,12 @@ final class Settings {
 		);
 	}
 
-	/** Today in the site's timezone. */
+	/** The current date and time in the site's timezone. */
+	public static function now(): \DateTimeImmutable {
+		return new \DateTimeImmutable( 'now', wp_timezone() );
+	}
+
+	/** Today (midnight) in the site's timezone. */
 	public static function today(): \DateTimeImmutable {
 		return new \DateTimeImmutable( 'today', wp_timezone() );
 	}

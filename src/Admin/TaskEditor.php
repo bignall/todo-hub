@@ -75,6 +75,10 @@ final class TaskEditor {
 			<label for="tdh-due"><strong><?php esc_html_e( 'Due date', 'todo-hub' ); ?></strong></label><br />
 			<input id="tdh-due" type="date" name="tdh_due" value="<?php echo esc_attr( $due ); ?>" />
 		</p>
+		<p>
+			<label for="tdh-due-time"><strong><?php esc_html_e( 'Time', 'todo-hub' ); ?></strong> <span class="description"><?php esc_html_e( '(optional)', 'todo-hub' ); ?></span></label><br />
+			<input id="tdh-due-time" type="time" name="tdh_due_time" value="<?php echo esc_attr( $task ? $task['due_time'] : '' ); ?>" />
+		</p>
 		<fieldset class="tdh-repeat-field">
 			<legend><strong><?php esc_html_e( 'Repeat', 'todo-hub' ); ?></strong></legend>
 			<label>
@@ -135,6 +139,7 @@ final class TaskEditor {
 			array(
 				'priority' => (string) ( $input['tdh_priority'] ?? '' ),
 				'due'      => (string) ( $input['tdh_due'] ?? '' ),
+				'due_time' => (string) ( $input['tdh_due_time'] ?? '' ),
 				'link'     => (string) ( $input['tdh_link'] ?? '' ),
 				'repeat'   => '' === $unit ? null : array(
 					'every' => absint( $input['tdh_repeat_every'] ?? 1 ),
@@ -168,8 +173,8 @@ final class TaskEditor {
 		if ( 'tdh_priority' === $column ) {
 			echo esc_html( Format::priority( $task['priority'] ) );
 		} elseif ( 'tdh_due' === $column && '' !== $task['due'] ) {
-			$state = 'done' === $task['status'] ? 'done' : Format::dueState( $task['due'] );
-			echo '<span class="tdh-due tdh-due--' . esc_attr( $state ) . '">' . esc_html( 'done' === $task['status'] ? $task['due'] : Format::due( $task['due'] ) ) . '</span>';
+			$state = 'done' === $task['status'] ? 'done' : Format::dueState( $task['due'], $task['due_time'] );
+			echo '<span class="tdh-due tdh-due--' . esc_attr( $state ) . '">' . esc_html( 'done' === $task['status'] ? trim( $task['due'] . ' ' . $task['due_time'] ) : Format::due( $task['due'], $task['due_time'] ) ) . '</span>';
 		}
 	}
 

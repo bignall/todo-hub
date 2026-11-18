@@ -33,6 +33,9 @@ if ( ! function_exists( 'todo_hub_add' ) ) {
 	 *     @type string|int        $priority 'high', 'normal' (default) or 'low', or 3, 2, 1.
 	 *     @type string|int|DateTimeInterface $due Y-m-d, a timestamp, a date object, or a phrase
 	 *                                         such as 'tomorrow' or 'next friday'. Empty for none.
+	 *                                         A time in it ('2026-12-01 14:30', 'tomorrow 3pm') is kept.
+	 *     @type string            $due_time Time of day, e.g. '14:30' or '2:30pm'. Empty for any time
+	 *                                       that day. Only used when there's a due date.
 	 *     @type string            $source   Your plugin's slug, e.g. 'where-to-buy'.
 	 *     @type string            $key      Your own id for this task, e.g. 'where-to-buy:approve-queue'.
 	 *     @type string            $link     Where to go to do the task, e.g. an admin screen.
@@ -94,7 +97,7 @@ if ( ! function_exists( 'todo_hub_add' ) ) {
 
 	/**
 	 * A task as an array: id, title, notes, status (open, done or trash), priority (1-3),
-	 * priority_name, due (Y-m-d or ''), categories, source, key, link, notify, repeat, data,
+	 * priority_name, due (Y-m-d or ''), due_time (H:i or ''), categories, source, key, link, notify, repeat, data,
 	 * created and completed (UTC, Y-m-d H:i:s), edit_url.
 	 *
 	 * @param int|string $id_or_key Task id, or the key of an open task.

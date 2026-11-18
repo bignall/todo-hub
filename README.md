@@ -2,7 +2,7 @@
 
 A WordPress plugin for one central to-do list. Tasks are sorted by what needs doing first: overdue and due-today tasks come first, and tasks rise up the list as their due date gets close. Other plugins can add tasks and hear when they're done.
 
-- **Quick add:** type a task, pick a category, priority, due date and repeat, press Add.
+- **Quick add:** type a task, pick a category, priority, due date, optional time and repeat, press Add.
 - **Sorted for you:** overdue, then due today, then by priority, with due-soon tasks counted higher (a low-priority task due in 3 days sits with high-priority tasks that have no date).
 - **Views:** Up next, By category, Today, Done. Filter by category or by the plugin that added the task.
 - **One click to tick off,** with Undo. Repeating tasks (daily, weekly, every 2 weeks, monthly, yearly, or every N days/weeks/months/years) add the next one when completed.
@@ -19,7 +19,7 @@ if ( function_exists( 'todo_hub_add' ) ) {
 		'key'      => 'where-to-buy:approve',    // same key again updates this task instead of adding another
 		'category' => 'Where to Buy',            // created if it doesn't exist
 		'priority' => 'high',                    // high, normal, low
-		'due'      => 'tomorrow',                // Y-m-d, timestamp, DateTime or a phrase
+		'due'      => 'tomorrow 3pm',            // Y-m-d, timestamp, DateTime or a phrase; a time is kept
 		'link'     => admin_url( 'edit.php?post_type=wtb_item&post_status=pending' ),
 		'data'     => array( 'count' => 5 ),     // handed back when it's completed
 	) );

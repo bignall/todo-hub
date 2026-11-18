@@ -11,9 +11,10 @@ One central to-do list, sorted by what needs doing first. Other plugins can add 
 
 == Description ==
 
-* To-do → Task List: add a task in one line (title, category, priority, due date, repeat), then tick tasks off with one click. Undo is offered right away.
+* To-do → Task List: add a task in one line (title, category, priority, due date, optional time, repeat), then tick tasks off with one click. Undo is offered right away.
 * Sorted for you: overdue tasks first, then tasks due today, then by priority. Tasks due within 3 days count two levels higher and within 7 days one level higher (both changeable in Settings), so things rise up the list as their date gets close.
 * Views: Up next, By category, Today (overdue and due today) and Done. Filter by category or by the plugin that added the task.
+* Due times: a task can have a time as well as a date. It counts as overdue once that time has passed, and on the same day timed tasks come first, earliest first.
 * Repeating tasks: daily, weekly, every 2 weeks, monthly, yearly, or every N days, weeks, months or years. Completing one adds the next, due one step after the old due date (moved past today if you finished late). Monthly tasks on the 31st fall on the last day of shorter months.
 * Each task can have notes, a link to where the work is done, and categories. Edit everything on the task's own screen.
 * The To-do menu shows how many tasks are overdue or due today, and a dashboard widget lists what's next.
@@ -34,4 +35,4 @@ A task added again with the same key updates the open task instead of adding a d
 == Changelog ==
 
 = 0.1.0 =
-* First release: task list with quick add, priority sorting, categories, repeating tasks, views, dashboard widget, private site option and the PHP API.
+* First release: task list with quick add, priority sorting, due dates with optional times, categories, repeating tasks, views, dashboard widget, private site option and the PHP API.

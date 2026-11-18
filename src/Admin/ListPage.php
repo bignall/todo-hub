@@ -56,7 +56,7 @@ final class ListPage {
 		);
 		$tasks   = 'done' === $view ? Tasks::done() : Tasks::open( $filters );
 		if ( 'today' === $view ) {
-			$tasks = array_values( array_filter( $tasks, static fn ( $t ) => in_array( Format::dueState( $t['due'] ), array( Ranking::STATE_OVERDUE, Ranking::STATE_TODAY ), true ) ) );
+			$tasks = array_values( array_filter( $tasks, static fn ( $t ) => in_array( Format::dueState( $t['due'], $t['due_time'] ), array( Ranking::STATE_OVERDUE, Ranking::STATE_TODAY ), true ) ) );
 		}
 		?>
 		<div class="wrap tdh">
@@ -150,6 +150,10 @@ final class ListPage {
 			<label>
 				<span class="screen-reader-text"><?php esc_html_e( 'Due date', 'todo-hub' ); ?></span>
 				<input type="date" name="due" />
+			</label>
+			<label>
+				<span class="screen-reader-text"><?php esc_html_e( 'Time (optional)', 'todo-hub' ); ?></span>
+				<input type="time" name="due_time" title="<?php esc_attr_e( 'Time (optional)', 'todo-hub' ); ?>" />
 			</label>
 			<label>
 				<span class="screen-reader-text"><?php esc_html_e( 'Repeat', 'todo-hub' ); ?></span>
@@ -269,7 +273,7 @@ final class ListPage {
 	 * @param array<string, mixed> $task The task.
 	 */
 	private static function row( array $task, bool $done ): void {
-		$state   = $done ? 'done' : Format::dueState( $task['due'] );
+		$state   = $done ? 'done' : Format::dueState( $task['due'], $task['due_time'] );
 		$classes = array( 'tdh-task', 'tdh-task--' . $state, 'tdh-task--' . Priority::name( $task['priority'] ) );
 		?>
 		<li class="<?php echo esc_attr( implode( ' ', $classes ) ); ?>">
@@ -292,7 +296,7 @@ final class ListPage {
 							?>
 						</span>
 					<?php elseif ( '' !== $task['due'] ) : ?>
-						<span class="tdh-due tdh-due--<?php echo esc_attr( $state ); ?>"><?php echo esc_html( Format::due( $task['due'] ) ); ?></span>
+						<span class="tdh-due tdh-due--<?php echo esc_attr( $state ); ?>"><?php echo esc_html( Format::due( $task['due'], $task['due_time'] ) ); ?></span>
 					<?php endif; ?>
 					<?php foreach ( $task['categories'] as $cat ) : ?>
 						<a class="tdh-cat" href="<?php echo esc_url( Menu::url( array( 'category' => $cat['id'] ) ) ); ?>"><?php echo esc_html( $cat['name'] ); ?></a>
@@ -360,6 +364,7 @@ final class ListPage {
 			'title'    => (string) ( $post['title'] ?? '' ),
 			'priority' => (string) ( $post['priority'] ?? '' ),
 			'due'      => (string) ( $post['due'] ?? '' ),
+			'due_time' => (string) ( $post['due_time'] ?? '' ),
 			'repeat'   => (string) ( $post['repeat'] ?? '' ),
 		);
 		$category = trim( (string) ( $post['category'] ?? '' ) );

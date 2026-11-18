@@ -16,32 +16,48 @@ use TodoHub\Settings;
 
 final class Format {
 
-	/** "3 days overdue", "Due today", "Due tomorrow", "Due Fri, Nov 21", "Due Jan 5, 2027". */
-	public static function due( string $due ): string {
+	/**
+	 * "3 days overdue", "Overdue since 2:00 pm", "Due today", "Due today at 2:00 pm",
+	 * "Due tomorrow", "Due Fri, Nov 21 at 9:00 am", "Due Jan 5, 2027".
+	 */
+	public static function due( string $due, string $time = '' ): string {
 		if ( '' === $due ) {
 			return '';
 		}
-		$today = Settings::today();
-		$days  = DueDate::daysUntil( $due, $today );
+		$now  = Settings::now();
+		$days = DueDate::daysUntil( $due, $now );
+		$at   = '' === $time ? '' : self::time( $due, $time );
 		if ( $days < 0 ) {
 			/* translators: %s: number of days. */
 			return sprintf( _n( '%s day overdue', '%s days overdue', -$days, 'todo-hub' ), number_format_i18n( -$days ) );
 		}
 		if ( 0 === $days ) {
-			return __( 'Due today', 'todo-hub' );
+			if ( '' === $at ) {
+				return __( 'Due today', 'todo-hub' );
+			}
+			/* translators: %s: a time of day. */
+			return Ranking::STATE_OVERDUE === self::dueState( $due, $time ) ? sprintf( __( 'Overdue since %s', 'todo-hub' ), $at ) : sprintf( __( 'Due today at %s', 'todo-hub' ), $at );
 		}
 		if ( 1 === $days ) {
-			return __( 'Due tomorrow', 'todo-hub' );
+			/* translators: %s: a time of day. */
+			return '' === $at ? __( 'Due tomorrow', 'todo-hub' ) : sprintf( __( 'Due tomorrow at %s', 'todo-hub' ), $at );
 		}
 		$timestamp = ( new \DateTimeImmutable( $due . ' 12:00', wp_timezone() ) )->getTimestamp();
-		$format    = $days <= 6 ? _x( 'D, M j', 'due date this week', 'todo-hub' ) : ( substr( $due, 0, 4 ) === $today->format( 'Y' ) ? _x( 'M j', 'due date this year', 'todo-hub' ) : _x( 'M j, Y', 'due date', 'todo-hub' ) );
-		/* translators: %s: a date. */
-		return sprintf( __( 'Due %s', 'todo-hub' ), wp_date( $format, $timestamp ) );
+		$format    = $days <= 6 ? _x( 'D, M j', 'due date this week', 'todo-hub' ) : ( substr( $due, 0, 4 ) === $now->format( 'Y' ) ? _x( 'M j', 'due date this year', 'todo-hub' ) : _x( 'M j, Y', 'due date', 'todo-hub' ) );
+		$date      = wp_date( $format, $timestamp );
+		/* translators: 1: a date, 2: a time of day. */
+		return '' === $at ? sprintf( __( 'Due %s', 'todo-hub' ), $date ) : sprintf( __( 'Due %1$s at %2$s', 'todo-hub' ), $date, $at );
+	}
+
+	/** A due time (H:i) in the site's time format. */
+	public static function time( string $due, string $time ): string {
+		$moment = new \DateTimeImmutable( $due . ' ' . $time, wp_timezone() );
+		return wp_date( (string) get_option( 'time_format', 'g:i a' ), $moment->getTimestamp() );
 	}
 
 	/** CSS modifier for a due date: overdue, today, soon, week, later or none. */
-	public static function dueState( string $due ): string {
-		return Ranking::state( $due, Settings::today(), Settings::soonDays(), Settings::weekDays() );
+	public static function dueState( string $due, string $time = '' ): string {
+		return Ranking::state( $due, Settings::now(), Settings::soonDays(), Settings::weekDays(), $time );
 	}
 
 	public static function priority( int $priority ): string {

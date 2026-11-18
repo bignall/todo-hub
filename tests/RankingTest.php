@@ -78,13 +78,35 @@ final class RankingTest extends TestCase {
 		$this->assertSame( array( 2, 3, 1 ), array_column( Ranking::sort( $tasks, $this->today ), 'id' ) );
 	}
 
+	public function testTimedTaskIsOverdueOnceItsTimePasses(): void {
+		$afternoon = new \DateTimeImmutable( '2026-11-18 14:30' );
+		$this->assertSame( Ranking::STATE_OVERDUE, Ranking::state( '2026-11-18', $afternoon, time: '09:00' ) );
+		$this->assertSame( Ranking::STATE_TODAY, Ranking::state( '2026-11-18', $afternoon, time: '14:30' ) );
+		$this->assertSame( Ranking::STATE_TODAY, Ranking::state( '2026-11-18', $afternoon, time: '17:00' ) );
+		$this->assertSame( Ranking::STATE_TODAY, Ranking::state( '2026-11-18', $afternoon ) );
+		$this->assertSame( Ranking::STATE_SOON, Ranking::state( '2026-11-19', $afternoon, time: '08:00' ) );
+	}
+
+	public function testSameDayTimedTasksComeFirstInTimeOrder(): void {
+		$now   = new \DateTimeImmutable( '2026-11-18 08:00' );
+		$tasks = array(
+			$this->task( 1, Priority::NORMAL, '2026-11-20' ),
+			$this->task( 2, Priority::NORMAL, '2026-11-20', time: '15:00' ),
+			$this->task( 3, Priority::NORMAL, '2026-11-20', time: '09:30' ),
+			$this->task( 4, Priority::NORMAL, '2026-11-18', time: '07:00' ), // Passed: overdue.
+			$this->task( 5, Priority::HIGH, '2026-11-18', time: '17:00' ),   // Later today.
+		);
+		$this->assertSame( array( 4, 5, 3, 2, 1 ), array_column( Ranking::sort( $tasks, $now ), 'id' ) );
+	}
+
 	public function testThresholdsCanChange(): void {
 		$this->assertSame( Ranking::STATE_SOON, Ranking::state( '2026-11-23', $this->today, 5, 10 ) );
 		$this->assertSame( Ranking::STATE_WEEK, Ranking::state( '2026-11-28', $this->today, 5, 10 ) );
 	}
 
-	/** @return array{id: int, priority: int, due: string, created: string} */
-	private function task( int $id, int $priority, string $due, string $created = '2026-11-01 00:00:00' ): array {
-		return compact( 'id', 'priority', 'due', 'created' );
+	/** @return array{id: int, priority: int, due: string, created: string, due_time: string} */
+	private function task( int $id, int $priority, string $due, string $created = '2026-11-01 00:00:00', string $time = '' ): array {
+		$due_time = $time;
+		return compact( 'id', 'priority', 'due', 'created', 'due_time' );
 	}
 }
