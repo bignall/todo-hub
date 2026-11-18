@@ -1,0 +1,185 @@
+/* To-do Hub admin styles. */
+
+.tdh-quick {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	margin: 16px 0 8px;
+	padding: 12px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+}
+.tdh-quick__title {
+	flex: 1 1 280px;
+	min-width: 200px;
+	font-size: 15px;
+}
+.tdh-quick input[name="category"] {
+	width: 160px;
+}
+
+.tdh-filters {
+	clear: both;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	padding: 8px 0;
+}
+
+.tdh-group {
+	margin: 24px 0 8px;
+	font-size: 15px;
+}
+.tdh-group .count {
+	color: #646970;
+	font-weight: 400;
+}
+
+.tdh-tasks {
+	clear: both;
+	margin: 8px 0 0;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	max-width: 960px;
+}
+.tdh-task {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	margin: 0;
+	padding: 10px 12px;
+	border-bottom: 1px solid #f0f0f1;
+	border-left: 3px solid transparent;
+}
+.tdh-task:last-child {
+	border-bottom: 0;
+}
+.tdh-task--overdue {
+	border-left-color: #d63638;
+}
+.tdh-task--today {
+	border-left-color: #dba617;
+}
+.tdh-task--done .tdh-task__title {
+	color: #646970;
+	text-decoration: line-through;
+}
+
+.tdh-check {
+	flex: none;
+	width: 20px;
+	height: 20px;
+	margin-top: 1px;
+	border: 2px solid #8c8f94;
+	border-radius: 50%;
+	box-sizing: border-box;
+	text-decoration: none;
+	position: relative;
+}
+.tdh-check:hover,
+.tdh-check:focus {
+	border-color: #00a32a;
+	background: #edfaef;
+}
+.tdh-check:hover::after,
+.tdh-check--done::after {
+	content: "";
+	position: absolute;
+	left: 5px;
+	top: 1px;
+	width: 5px;
+	height: 10px;
+	border: solid #00a32a;
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+}
+.tdh-check--done {
+	border-color: #00a32a;
+	background: #edfaef;
+}
+
+.tdh-task__main {
+	flex: 1;
+	min-width: 0;
+}
+.tdh-task__title {
+	font-size: 14px;
+	font-weight: 600;
+	text-decoration: none;
+	color: #1d2327;
+}
+.tdh-task__title:hover {
+	color: #2271b1;
+}
+.tdh-task__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 12px;
+	margin-top: 4px;
+	font-size: 12px;
+	color: #646970;
+}
+.tdh-task__meta a {
+	text-decoration: none;
+}
+
+.tdh-badge {
+	padding: 0 6px;
+	border-radius: 3px;
+	font-weight: 600;
+}
+.tdh-badge--high {
+	background: #fcf0f1;
+	color: #b32d2e;
+}
+.tdh-badge--low {
+	background: #f0f0f1;
+	color: #646970;
+}
+
+.tdh-due--overdue {
+	color: #b32d2e;
+	font-weight: 600;
+}
+.tdh-due--today {
+	color: #996800;
+	font-weight: 600;
+}
+.tdh-due--soon {
+	color: #1d2327;
+}
+
+.tdh-cat {
+	color: #2271b1;
+}
+.tdh-empty {
+	clear: both;
+	padding: 24px 0;
+	font-size: 14px;
+	color: #646970;
+}
+
+.tdh-repeat-field {
+	margin: 1em 0;
+}
+.tdh-repeat-field .description {
+	display: block;
+	margin-top: 4px;
+}
+
+.tdh-mini {
+	margin: 0;
+}
+.tdh-mini li {
+	margin-bottom: 6px;
+}
+
+/* Task editor: status, visibility and publish date don't apply to tasks. */
+.post-type-tdh_task #minor-publishing-actions,
+.post-type-tdh_task #misc-publishing-actions {
+	display: none;
+}
