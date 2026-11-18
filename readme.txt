@@ -4,7 +4,7 @@ Tags: to-do, tasks, task list, reminders, productivity
 Requires at least: 6.4
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.2.0
+Stable tag: 0.3.0
 License: GPLv2 or later
 
 One central to-do list, sorted by what needs doing first. Other plugins can add tasks and hear when they're done.
@@ -21,6 +21,7 @@ One central to-do list, sorted by what needs doing first. Other plugins can add 
 * Private site option: send visitors who aren't logged in to the login page, for a site that holds only your list.
 * One list for all your sites: set the other sites to Connector mode and their tasks go to the hub, where each shows which site and plugin it came from. The hub tells a site when its tasks are done, and changes made while the hub is unreachable are sent later.
 * REST API on the hub at /wp-json/todo-hub/v1, authenticated with application passwords.
+* Google Calendar (on the hub): tasks with a due date go on a "To-do" calendar in your Google account, as all-day events or at their due time, and are updated, ticked or removed as the tasks change.
 * Built on WP Foundation (activation, upgrades, uninstall, multisite, deactivation survey).
 
 == For plugin developers ==
@@ -41,7 +42,21 @@ A task added again with the same key updates the open task instead of adding a d
 
 The hub must use https. Run WP-Cron on a real schedule (a server cron job every five minutes) so waiting changes and retries go out on time.
 
+== Google Calendar ==
+
+To-do → Settings → Google Calendar, on the hub. You need your own Google OAuth client:
+
+1. In the Google Cloud console, enable the Google Calendar API.
+2. Set up the OAuth consent screen and set its publishing status to In production (while it's Testing, Google ends the connection after 7 days).
+3. Create an OAuth client ID of type Web application with the redirect URI shown on the settings page.
+4. Enter the client ID and secret, save, and press Connect Google Calendar.
+
+To-do Hub only asks to manage a calendar it creates itself; it can't see your other calendars. Changes are copied from the task list to the calendar, not back.
+
 == Changelog ==
+
+= 0.3.0 =
+* Google Calendar sync on the hub: dated tasks become events on a "To-do" calendar (all day, or at their due time), kept up to date as tasks change, are completed, reopened, trashed or deleted. Done tasks are ticked and shown as free, or removed. Retries when Google can't be reached, and a daily check.
 
 = 0.2.0 =
 * Connector mode: send this site's tasks to a hub on another site. The PHP API works the same in both modes.

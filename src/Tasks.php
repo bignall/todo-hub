@@ -377,6 +377,12 @@ final class Tasks {
 		if ( array_key_exists( 'category', $args ) ) {
 			wp_set_object_terms( $id, self::categoryIds( $args['category'] ), self::TAXONOMY );
 		}
+		/**
+		 * Fires after a task's fields are saved (added or changed through To-do Hub).
+		 *
+		 * @param int $id Task id.
+		 */
+		do_action( 'todo_hub_task_changed', $id );
 	}
 
 	/**

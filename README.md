@@ -67,7 +67,16 @@ The hub's API lives at `/wp-json/todo-hub/v1` (or `/?rest_route=/todo-hub/v1` wi
 
 When a task with `notify` set and a `callback` URL is completed or reopened, the hub POSTs `{"event": "completed", "task_id": 12, "site": "...", "key": "..."}` to the callback, retrying for about 14 hours if that fails. The message carries no secret: the connected site fetches the task back from the hub to see what really happened before it acts.
 
-Coming next: Google Calendar sync.
+## Google Calendar
+
+On the hub, To-do → Settings → **Google Calendar** puts tasks with a due date on a "To-do" calendar in your Google account: all-day events for tasks with only a date, events of a set length (30 minutes by default) for tasks with a time. Event descriptions carry the task's notes, its link and a link back to the task. When a task is done its event gets a ✓ and shows as free, or is removed (your choice). Tasks with no due date, in the trash or deleted have no event. It's one way: changes made in Google Calendar aren't copied back.
+
+1. In the [Google Cloud console](https://console.cloud.google.com/), enable the **Google Calendar API** for a project.
+2. Set up the OAuth consent screen for your own account and set its publishing status to **In production**. While it's "Testing", Google ends the connection after 7 days. For your own use you don't need Google's verification; you'll see an "unverified app" warning you can continue past.
+3. Create an OAuth client ID of type **Web application** with the redirect URI shown on the settings page (`/wp-admin/admin-post.php?action=tdh_google_callback`).
+4. Paste the client ID and secret into the settings, save, and press **Connect Google Calendar**.
+
+To-do Hub asks only for the `calendar.app.created` scope: it can create its own calendar and manage events on it, and can't see your other calendars. Changes go out at the end of the request that made them. Anything Google can't take right away is retried every five minutes, and everything is checked again once a day (only events that would look different are sent). Developers can point the plugin at other addresses with the `todo_hub_google_urls` filter.
 
 ## Install
 

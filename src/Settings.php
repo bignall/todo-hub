@@ -16,13 +16,17 @@ final class Settings {
 	public const MODE_HUB       = 'hub';
 	public const MODE_CONNECTOR = 'connector';
 
-	/** @return array{mode: string, hub_url: string, hub_user: string, hub_password: string, soon_days: int, week_days: int, private_site: bool, remove_data: bool} */
+	/** @return array<string, mixed> */
 	public static function defaults(): array {
 		return array(
 			'mode'         => self::MODE_HUB,
 			'hub_url'      => '',
 			'hub_user'     => '',
 			'hub_password' => '',
+			'google_client_id'     => '',
+			'google_client_secret' => '',
+			'calendar_done'        => 'mark',
+			'calendar_minutes'     => 30,
 			'soon_days'    => Ranking::SOON_DAYS,
 			'week_days'    => Ranking::WEEK_DAYS,
 			'private_site' => false,
@@ -64,7 +68,18 @@ final class Settings {
 		if ( '' === $password && empty( $input['hub_password_clear'] ) ) {
 			$password = (string) self::get( 'hub_password' ); // Blank means "keep the saved one".
 		}
+		// Google fields are only on the form in hub mode: keep the saved values when they're absent,
+		// and a blank secret means "keep the saved one".
+		$client_id = array_key_exists( 'google_client_id', $input ) ? trim( sanitize_text_field( (string) $input['google_client_id'] ) ) : (string) self::get( 'google_client_id' );
+		$secret    = trim( (string) ( $input['google_client_secret'] ?? '' ) );
+		$secret    = '' !== $secret ? sanitize_text_field( $secret ) : (string) self::get( 'google_client_secret' );
+		$done      = (string) ( $input['calendar_done'] ?? self::get( 'calendar_done' ) );
+		$minutes   = (int) ( $input['calendar_minutes'] ?? self::get( 'calendar_minutes' ) );
 		return array(
+			'google_client_id'     => $client_id,
+			'google_client_secret' => $secret,
+			'calendar_done'        => 'remove' === $done ? 'remove' : 'mark',
+			'calendar_minutes'     => max( 5, min( 480, $minutes ) ),
 			'mode'         => self::MODE_CONNECTOR === ( $input['mode'] ?? '' ) ? self::MODE_CONNECTOR : self::MODE_HUB,
 			'hub_url'      => untrailingslashit( esc_url_raw( trim( (string) ( $input['hub_url'] ?? '' ) ), array( 'https', 'http' ) ) ),
 			'hub_user'     => sanitize_user( (string) ( $input['hub_user'] ?? '' ) ),

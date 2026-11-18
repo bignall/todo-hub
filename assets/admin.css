@@ -183,3 +183,10 @@
 .post-type-tdh_task #misc-publishing-actions {
 	display: none;
 }
+
+.tdh-steps {
+	margin: 0 0 0 1.5em;
+}
+.tdh-steps li {
+	margin-bottom: 8px;
+}

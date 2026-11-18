@@ -31,6 +31,7 @@ final class App {
 		} else {
 			Hub\RestApi::init();
 			Hub\Webhooks::init();
+			Google\Calendar::init();
 		}
 
 		if ( is_admin() ) {
@@ -39,6 +40,7 @@ final class App {
 			Admin\ConnectorPage::init();
 			Admin\TaskEditor::init();
 			Admin\SettingsPage::init();
+			Admin\GooglePage::init();
 			Admin\DashboardWidget::init();
 		}
 	}

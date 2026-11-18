@@ -19,6 +19,8 @@ final class Bootstrap {
 		return Plugin::create( $file, self::PREFIX )
 			->requires( php: '8.1', wp: '6.4' )
 			->options( array( Settings::OPTION => Settings::defaults() ), merge: true )
+			// Created when used; listed so uninstall removes them.
+			->options( array( Google\Client::OPTION => array(), Google\Calendar::RETRY_OPTION => array() ) )
 			->capabilities( array( 'administrator' => array( Tasks::CAPABILITY ) ) )
 			// A user for connected sites to log in as (with an application password).
 			->role(
@@ -31,6 +33,8 @@ final class Bootstrap {
 			)
 			->cronSchedule( 'tdh_five_minutes', 5 * MINUTE_IN_SECONDS, 'Every five minutes' )
 			->cron( Connector\Outbox::CRON_HOOK, 'tdh_five_minutes' )
+			->cron( Google\Calendar::RETRY_HOOK, 'tdh_five_minutes' )
+			->cron( Google\Calendar::DAILY_HOOK, 'daily' )
 			->postTypes( Tasks::POST_TYPE )
 			->taxonomies( Tasks::TAXONOMY )
 			->deactivationSurvey()

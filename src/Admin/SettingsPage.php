@@ -77,6 +77,7 @@ final class SettingsPage {
 						echo esc_html( sprintf( __( 'Other sites connect to this hub at %s.', 'todo-hub' ), home_url() ) );
 						?>
 					</p>
+					<?php GooglePage::render(); ?>
 				<?php endif; ?>
 
 				<h2><?php esc_html_e( 'Task list', 'todo-hub' ); ?></h2>
