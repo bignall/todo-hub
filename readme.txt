@@ -1,10 +1,10 @@
 === To-do Hub ===
-Contributors: arbe
+Contributors: bignall
 Tags: to-do, tasks, task list, reminders, productivity
 Requires at least: 6.4
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 License: GPLv2 or later
 
 One central to-do list, sorted by what needs doing first. Other plugins can add tasks and hear when they're done.
@@ -54,6 +54,9 @@ To-do → Settings → Google Calendar, on the hub. You need your own Google OAu
 To-do Hub only asks to manage a calendar it creates itself; it can't see your other calendars. Changes are copied from the task list to the calendar, not back.
 
 == Changelog ==
+
+= 0.3.1 =
+* The plugin's author is now RB Creative Solutions.
 
 = 0.3.0 =
 * Google Calendar sync on the hub: dated tasks become events on a "To-do" calendar (all day, or at their due time), kept up to date as tasks change, are completed, reopened, trashed or deleted. Done tasks are ticked and shown as free, or removed. Retries when Google can't be reached, and a daily check.

@@ -3,10 +3,11 @@
  * Plugin Name:       To-do Hub
  * Plugin URI:        https://bignall.github.io/todo-hub/
  * Description:       One central to-do list, sorted by what needs doing first: overdue and due-soon tasks rise to the top. Other plugins can add tasks and hear when they're done.
- * Version:           0.3.0
+ * Version:           0.3.1
  * Requires at least: 6.4
  * Requires PHP:      8.1
- * Author:            Arbe
+ * Author:            RB Creative Solutions
+ * Author URI:        https://rbcreativesolutions.net
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       todo-hub
