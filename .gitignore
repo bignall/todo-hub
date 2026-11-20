@@ -4,3 +4,5 @@
 /vendor-prefixed/
 /dist/
 .phpunit.result.cache
+_site/
+node_modules/

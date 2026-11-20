@@ -9,6 +9,8 @@ A WordPress plugin for one central to-do list. Tasks are sorted by what needs do
 - **Menu badge and dashboard widget** show what's due now and what's next.
 - **Private site option** sends logged-out visitors to the login page, for a site that only holds your list.
 
+**Guides:** https://bignall.github.io/todo-hub/ (built from `docs/` and `site/` by `.github/workflows/pages.yml`).
+
 ## For plugin developers
 
 ```php
@@ -87,6 +89,7 @@ Download `todo-hub-x.y.z.zip` from the [latest release](https://github.com/bigna
 ```bash
 composer install      # installs WP Foundation and prefixes it with Strauss
 composer test         # runs the unit tests (PHPUnit)
+npm install && npm run site:build   # the guides site, into _site/
 bin/build-zip.sh      # writes dist/todo-hub-<version>.zip
 ```
 
